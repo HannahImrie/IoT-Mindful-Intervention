@@ -1,16 +1,21 @@
+from notification import *
+import os
 from time import time, sleep
 import datetime
 import json
 from bson import ObjectId, json_util
 from pymongo import MongoClient
 import requests
+import RPi.GPIO as GPIO
 
 #(hue, sat, brightness, kelvin)
 
 
-def mongo_setup():
+def mongo_setup(f):
 
-    secrets = open("secrets.json")
+    f.write(os.getcwd())
+
+    secrets = open("home/pi/shared_files/secrets.json")
     secrets = json.load(secrets)
     token = secrets["Mongo_Key"]
 
@@ -20,12 +25,16 @@ def mongo_setup():
         return client
     except:
         try:
+
             print("Could not connect to MongoDB...")
             print("Attempting again...")
             client = MongoClient(token)
+            GPIO.output(27, GPIO.HIGH)
             return client
         except:
+            GPIO.output(27, GPIO.LOW)
             print("Can't connect :(")
+            f.write("\nmongodb issue")
 
 
 def hue(value):  # 0-360
@@ -42,30 +51,6 @@ def brightness(value):  # 0-1
 
 def kelvin(value):
     return (hue(120), saturation(0), brightness(0.2), value)
-
-
-def to_red():
-    secrets = open("secrets.json")
-    secrets = json.load(secrets)
-    token = secrets["API_KEY_PI_1"]
-    label_id = secrets["Lamp1"]
-
-    headers = {"Authorization": "Bearer %s" % token, }
-
-    payload = {
-        "states": [
-            {
-                "selector": f"id:{label_id}",
-                "power": "on",
-                "color": "red",
-                "brightness": 0.2,
-                "duration": 1800,
-            }
-        ]
-    }
-
-    response = requests.put('https://api.lifx.com/v1/lights/states',
-                            data=json.dumps(payload), headers=headers)
 
 
 def meditation(bulb, collection):
@@ -118,10 +103,11 @@ def breaktime(collection):
 
 
 def get_sensor(chan0, chan1, chan2, chan3, chan4):
-    fR = chan0.value
+
+    bL = chan0.value
     bR = chan1.value
     b = chan2.value
-    bL = chan3.value
+    fR = chan3.value
     fL = chan4.value
 
     print(f"FR: {fR}, BR: {bR}, B: {b}, BL: {bL}, FL: {fL}")
