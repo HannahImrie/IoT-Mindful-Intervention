@@ -21,7 +21,7 @@ GPIO.setwarnings(False)
 GPIO.setup(27, GPIO.OUT)
 GPIO.output(27, GPIO.LOW)
 
-f = open("home/pi/shared_files/demofile2.txt", "a")
+f = open("/home/pi/shared_files/demofile2.txt", "a")
 
 # Find light on network
 print("Discovering lights...")
@@ -117,6 +117,7 @@ def main():
             # if listtotal.count(0) == 0 and onabreak == True:
             f.write("\nMeditation Time")
             print("Meditation time")
+            count = 0
             onabreak = False
             med = 0
             t2 = threading.Thread(target=meditation, args=[bulb, collection1])
@@ -133,8 +134,8 @@ def main():
             bulb.set_color((hue(260), saturation(1), brightness(0.2), 6000))
 
         # TODO test for breaktime during meditation
-        if count > 1800 and count % 300 == 0:
-            flash = (count-1800)//300
+        if count > 3200 and count % 300 == 0 and onabreak == False:
+            flash = (count-3200)//300
             bulb.set_waveform(0, (hue(0), saturation(
                 1), brightness(0.4), 6000), 300, flash, 0, 1)
         #f.write("\nalmost at end")
